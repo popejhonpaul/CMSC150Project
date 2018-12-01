@@ -33,6 +33,9 @@ public class SystemUI{
                 mainPolyRegPanel.setLayout(new BoxLayout(mainPolyRegPanel, BoxLayout.PAGE_AXIS));
                 JPanel polyRegPnl = new JPanel(new FlowLayout());
 
+                optBtn.setEnabled(false);
+                quadSplineBtn.setEnabled(false);
+
                 JTextArea functionTextArea = new JTextArea();
                 JTextField xTxtFld = new JTextField();
                 xTxtFld.setPreferredSize(new Dimension(30, 20));
@@ -46,6 +49,8 @@ public class SystemUI{
                     @Override
                     public void windowClosing(WindowEvent event) {
                         pointList.clear();
+                        optBtn.setEnabled(true);
+                        quadSplineBtn.setEnabled(true);
                         //System.out.println("Exited polynomialRegression");
                     }
                 });
@@ -76,7 +81,9 @@ public class SystemUI{
                 computeBtn.addActionListener(new ActionListener(){
                     public void actionPerformed(ActionEvent e){
                         if(degreeTxtFld.getText().equals("") || pointList.isEmpty()){
-                            JOptionPane.showMessageDialog(null, "Enter degree or select input file.");
+                            JOptionPane.showMessageDialog(polyRegFrame, "Enter degree or select input file.");
+                        }else if(!degreeTxtFld.getText().matches("^\\d*$")){
+                            JOptionPane.showMessageDialog(polyRegFrame, "Degree should be an integer.");
                         }else{
                             int degree = Integer.parseInt(degreeTxtFld.getText());
                             double[][] matrix = new double[(degree+1)][(degree+2)];                   //matrix
@@ -143,9 +150,11 @@ public class SystemUI{
                 findEstimateBtn.addActionListener(new ActionListener(){
                     public void actionPerformed(ActionEvent e){
                         if(xTxtFld.getText().equals("")){
-                            JOptionPane.showMessageDialog(null, "Enter x.");
+                            JOptionPane.showMessageDialog(polyRegFrame, "Enter x.");
                         }else if(degreeTxtFld.getText().equals("") || pointList.isEmpty()){
-                            JOptionPane.showMessageDialog(null, "Enter degree or select input file.");
+                            JOptionPane.showMessageDialog(polyRegFrame, "Enter degree or select input file.");
+                        }else if(!xTxtFld.getText().matches("^\\d*\\.?\\d+|\\d+\\.\\d*$")){
+                            JOptionPane.showMessageDialog(polyRegFrame, "x should be a number.");
                         }else{
                             int degree = Integer.parseInt(degreeTxtFld.getText());
                             DecimalFormat df = new DecimalFormat("#.000000");
@@ -176,16 +185,17 @@ public class SystemUI{
                 quadSplineFrame.setPreferredSize(new Dimension(280, 330));
                 JTextArea functionTextArea = new JTextArea();
 
+                polyRegBtn.setEnabled(false);
+                optBtn.setEnabled(false);
+
                 quadSplineFrame.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosing(WindowEvent event) {
+                        polyRegBtn.setEnabled(true);
+                        optBtn.setEnabled(true);
                         pointList.clear();
-                        //System.out.println("Exited polynomialRegression");
                     }
                 });
-
-                /*JTextField degreeTxtFld = new JTextField();
-                JPanel degreeContainer = new JPanel();*/
 
                 JButton openFileBtn = new JButton("Browse...");
                 openFileBtn.addActionListener(new ActionListener(){
@@ -235,7 +245,6 @@ public class SystemUI{
 
                         resultingRHS = gaussJordanElim(matrix, matrixSize, matrixSize+1);
 
-                        String[] fxtionList = new String[pointList.size()];
                         String tempString2 = "";
                         for(int i = 0; i < pointList.size()-1; i++){
                             String tempString = pointList.get(i).x + " <= x <= " + pointList.get(i+1).x + "\nfunction (x) ";
@@ -246,15 +255,10 @@ public class SystemUI{
                                     if(j != 2) tempString = tempString + " + ";
                                 }
                             }
-                            fxtionList[i] = tempString;
                             tempString = tempString + "\n\n";
                             tempString2 = tempString2 + tempString;
                         }
                         functionTextArea.setText(tempString2);
-
-                        for(int i = 0; i < pointList.size()-1; i++){
-                            System.out.println(fxtionList[i]);
-                        }
 
                         for(int i = 0; i < matrixSize; i++){
                             for(int j = 0; j < matrixSize+1; j++){
@@ -262,8 +266,6 @@ public class SystemUI{
                             }
                             System.out.println();
                         }
-                            
-                        //System.out.println(pointList.get(i).x+ " " +pointList.get(i).y);
                     }
                 });
 
@@ -280,12 +282,16 @@ public class SystemUI{
                 estimateLabel.setVisible(false);
                 quadSplinePnl.add(new JLabel("x: "));
                 JTextField xTxtFld = new JTextField();
-                xTxtFld.setPreferredSize(new Dimension(30, 20));
+                xTxtFld.setPreferredSize(new Dimension(50, 20));
                 JButton findEstimateBtn = new JButton("Find Estimate");
                 findEstimateBtn.addActionListener(new ActionListener(){
                     public void actionPerformed(ActionEvent e){
                         if(xTxtFld.getText().equals("")){
-                            JOptionPane.showMessageDialog(null, "Enter x.");
+                            JOptionPane.showMessageDialog(quadSplineFrame, "Enter x.");
+                        }else if(pointList.isEmpty()){
+                            JOptionPane.showMessageDialog(quadSplineFrame, "Select input file.");
+                        }else if(!xTxtFld.getText().matches("^\\d*\\.?\\d+|\\d+\\.\\d*$")){
+                            JOptionPane.showMessageDialog(quadSplineFrame, "x should be a number.");
                         }else{
                             double xValue = Double.valueOf(xTxtFld.getText());
                             double[] tempArray = new double[3];
@@ -314,6 +320,29 @@ public class SystemUI{
             }
         });
         container.add(optBtn);
+        optBtn.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                JFrame optFrame = new JFrame("Optimization");
+                optFrame.setPreferredSize(new Dimension(280, 330));
+
+                polyRegBtn.setEnabled(false);
+                quadSplineBtn.setEnabled(false);
+
+                optFrame.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent event) {
+                        pointList.clear();
+                        polyRegBtn.setEnabled(true);
+                        quadSplineBtn.setEnabled(true);
+                        //System.out.println("Exited polynomialRegression");
+                    }
+                });
+
+                optFrame.pack();
+                optFrame.setResizable(false);
+                optFrame.setVisible(true);
+            }
+        });
 
         mainFrame.add(container);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
